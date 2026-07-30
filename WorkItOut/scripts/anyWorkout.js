@@ -75,11 +75,12 @@ function loadPreviousWorkoutData() { // Replace with the actual workout name
   // Handle user input on rep cells
 function handleRepInput(event) {
 	var cell = event.target;
-	var inputValue = cell.textContent;
-	
-	// Remove grayed-out class and update content
-	cell.classList.remove('grayed-out');
-	cell.textContent = inputValue;
+
+	// Remove grayed-out styling once the user starts typing.
+	// Do NOT reassign cell.textContent here: on a contentEditable element that
+	// rebuilds the text node and forces the caret back to the start.
+	cell.classList.remove('grayed_out');
+	cell.classList.add('black_text');
 }
 
 document.getElementById("any_workout_type").innerHTML = this.workout.type.replace(/_/g, ' ').toUpperCase();
