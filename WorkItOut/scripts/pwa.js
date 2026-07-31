@@ -13,6 +13,33 @@
 // Requires a secure context: HTTPS, or localhost for local testing. Opening the
 // files directly over file:// silently does nothing, which is expected.
 
+// Ask the browser to stop treating our saved data as disposable.
+//
+// By default localStorage is "best-effort": Android can evict it when the device
+// is low on space, which would wipe saved workouts. Requesting persistence
+// exempts the origin from that. Chrome usually grants it silently for installed
+// PWAs and declines for plain tabs; either way this is advisory, never fatal,
+// and no substitute for the export on content/backup.html.
+(function () {
+    if (!navigator.storage || !navigator.storage.persist) {
+        return;
+    }
+
+    navigator.storage.persisted()
+        .then(function (already) {
+            if (already) return null;
+            return navigator.storage.persist();
+        })
+        .then(function (granted) {
+            if (granted === false) {
+                console.info('[pwa] persistent storage not granted; data may be evicted under storage pressure');
+            }
+        })
+        .catch(function () {
+            // Not supported or blocked by policy - nothing to do.
+        });
+})();
+
 (function () {
     if (!('serviceWorker' in navigator)) {
         return;

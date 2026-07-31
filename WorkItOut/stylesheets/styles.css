@@ -748,3 +748,24 @@ td {
 #bmi-container {
     border: black 12px;
 }
+
+/* Backup page */
+.backup_blurb {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #333;
+    background-color: #fafafa;
+    border-radius: 10px;
+    max-width: 34rem;
+    margin: 0.5rem auto;
+    padding: 0.75rem;
+}
+
+#backup_status {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    min-height: 1.5rem;
+    margin: 1.5rem auto;
+    max-width: 34rem;
+    /* pre-line so multi-item failure messages keep their line breaks */
+    white-space: pre-line;
+}
