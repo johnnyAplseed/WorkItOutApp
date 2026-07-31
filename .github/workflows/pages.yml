@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+# The app lives in WorkItOut/, but Pages can only serve from the repo root or
+# /docs when deploying from a branch. Uploading just that directory as the
+# artifact makes it the site root instead, so no repo restructuring is needed
+# and the published URL is https://<user>.github.io/WorkItOutApp/
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-progress deploy finish rather than cancelling it mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Give each deploy its own cache name so returning visitors pick up the
+      # new assets instead of being served an old precache indefinitely.
+      - name: Stamp service worker cache version
+        run: |
+          sed -i "s/__CACHE_VERSION__/${GITHUB_SHA}/" WorkItOut/sw.js
+          grep -n "CACHE_VERSION = " WorkItOut/sw.js
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: WorkItOut
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
