@@ -1,4 +1,8 @@
-@import url("https://fonts.googleapis.com/css?family=Impact");
+/* No remote @import here on purpose: the app must render fully offline.
+   Impact is not a Google Font, so the old fonts.googleapis.com import
+   fetched nothing usable while still costing a blocking network request.
+   Impact is kept in the font stacks below as a local-only desktop
+   fallback; Azonix (self-hosted) is what actually renders. */
 /* @import url("https://www.w3schools.com/w3css/4/w3.css"); */
 
 @font-face {
@@ -20,7 +24,7 @@ html {
 body {
     font-family: Azonix,Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
     /* background-image: linear-gradient(to bottom right, yellow); */
-    /* background-image: url("../images/Backgrounds/bg3.jpg"); */
+    /* background-image: url("../images/Backgrounds/bg3.webp"); */
     background-image: linear-gradient(to bottom right, #484848, #ffffff);
     background-color: #c4c4c4;
     background-attachment: fixed; 

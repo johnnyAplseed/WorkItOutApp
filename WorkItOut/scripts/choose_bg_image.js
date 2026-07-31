@@ -9,9 +9,9 @@ var bodyBackground = window.document.getElementsByTagName("body");
 //randomly choose background image from folder of bgs
 var randomNumber = randomIntFromInterval(1,9);
     if (window.location.toString().includes("index")) {
-        bodyBackground[0].style.backgroundImage = "url('images/Backgrounds/bg" + randomNumber +".jpg')"
+        bodyBackground[0].style.backgroundImage = "url('images/Backgrounds/bg" + randomNumber +".webp')"
     }else {
-        bodyBackground[0].style.backgroundImage = "url('../images/Backgrounds/bg" + randomNumber +".jpg')"
+        bodyBackground[0].style.backgroundImage = "url('../images/Backgrounds/bg" + randomNumber +".webp')"
     }
 }
 
