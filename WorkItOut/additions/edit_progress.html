@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-<meta name="viewport" content="width=device-width" />
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Work It Out | Track Progress</title>
     <link rel="stylesheet" type="text/css" href="../stylesheets/styles.css">
 </head>
@@ -15,7 +15,13 @@
     </div>
 
     <div id="wrapper">
-        <form action="http://tbd.com" method="post">
+        <!-- No action/method: this form must never POST anywhere. It used to
+             target http://tbd.com, a placeholder host that doesn't exist -
+             inside an Android WebView that shows a connection-error page and
+             drops the user out of the app. onsubmit returns false so Enter in a
+             text field can't navigate either. Saving still needs a real handler
+             (see #submit_button below). -->
+        <form onsubmit="return false;">
 
             <div id="name_progress">
                 <h1>Track Your Progress:</h1>
@@ -40,6 +46,11 @@
 
         <div class="cancel_submit">
             <button id="cancel_button" onclick="window.location.href='../content/home.html'">Cancel</button>
+            <!-- TODO: this input sits outside </form> above, so it was never
+                 associated with the form and clicking it has always done
+                 nothing. Persisting a progress memo still needs a handler;
+                 note the photo input means storage has to hold binary data,
+                 which localStorage is a poor fit for. -->
             <input id="submit_button" type="submit" name="submit_new_progress">
         </div>
     </div>
@@ -47,4 +58,5 @@
 </body>
 
 <script src="../scripts/choose_bg_image.js"></script>
+<script src="../scripts/navigation.js"></script>
 </html>
