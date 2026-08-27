@@ -339,9 +339,14 @@ h5 {
     /* display: block; */
     border: none;
     align-self: center;
-    white-space: nowrap; 
-    text-overflow: ellipsis; /* Display ellipsis (...) for overflow text */
-    overflow: hidden;
+    /* Grow downwards to fit the whole workout name rather than truncating it.
+       min-height keeps names that already fit exactly the size they were. */
+    white-space: normal;
+    overflow-wrap: break-word;
+    height: auto;
+    min-height: 3rem;
+    padding: 0.4rem 0.6rem;
+    line-height: 1.15;
 } 
 
 .delete_button {
@@ -390,11 +395,23 @@ h5 {
 #workouts_wrapper .workout_row .delete_button {
     flex: 0 0 20%;
     width: auto;
+    /* height:auto lets align-items:stretch size these to the row, so they keep
+       up with a workout name that has wrapped onto several lines. */
+    height: auto;
+    min-height: 3rem;
+}
+
+/* ...but the trash icon is sized as a percentage of its button, so cap it or
+   it balloons on a tall row. */
+#workouts_wrapper .delete_img {
+    max-height: 1.75rem;
 }
 
 #workouts_wrapper .workout_row .drag_handle {
     flex: 0 0 3rem;
     width: auto;
+    height: auto;
+    min-height: 3rem;
     padding: 0;
     border: none;
     display: flex;
@@ -804,6 +821,12 @@ input[type="text"]:focus {
 #notes_paragraph {
     background-color: #ffffe6;
     color: #333;
+    /* Notes are plain text from a textarea and can contain newlines. A <p>
+       collapses those to spaces by default, so without pre-wrap a note's
+       line breaks are invisible - and then lost for good the next time the
+       workout is saved. */
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
 }
 
 td {

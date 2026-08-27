@@ -85,7 +85,10 @@ function handleRepInput(event) {
 
 document.getElementById("any_workout_type").innerHTML = this.workout.type.replace(/_/g, ' ').toUpperCase();
 console.log("Starting workout: " + this.workout.workoutName + ", exercises: " + JSON.stringify(workout));
-document.getElementById("notes_paragraph").innerHTML = this.workout.notes.toString();
+// textContent, not innerHTML: notes are typed into a textarea, so they are
+// plain text that can contain newlines and characters like < that innerHTML
+// would try to parse as markup.
+document.getElementById("notes_paragraph").textContent = this.workout.notes.toString();
 
 
 
@@ -265,7 +268,12 @@ function saveWorkout () {
 	var name = document.querySelector('#any_workout_name').textContent;
 	workoutData.name = name;
 	
-	var notes = document.querySelector("#notes_paragraph").textContent;
+	// innerText, not textContent: pressing Enter in a contenteditable makes the
+	// browser insert <br>/<div> elements rather than a newline character.
+	// textContent walks straight past those, so every line break in the notes
+	// was being dropped on save. innerText reads the text as rendered and
+	// gives the breaks back as real newlines.
+	var notes = document.querySelector("#notes_paragraph").innerText;
 	workoutData.notes = notes;
 
 	var workoutTime = document.querySelector("#display_time").textContent;
