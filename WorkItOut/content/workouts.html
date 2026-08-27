@@ -22,22 +22,28 @@
                 src="../images/work_it_out_logo_workouts.png" alt="Work It Out logo" />
         </div>
         <div id="workouts_wrapper">
-            <div>
-                <!-- <p>My Workouts</p> -->
+            <!-- The three built-in workouts are pinned to the top and are not
+                 draggable; only the saved workouts below them can be reordered. -->
+            <div class="workout_row">
                 <button class="home_page_button workout_button default_workout_button" onclick="window.location.href='../workouts/calisthenics.html'">
                     Beginner Calisthenics
                 </button>
             </div>
-            <div>
-                <!-- <p>My Workouts</p> -->
+            <div class="workout_row">
                 <button class="home_page_button workout_button default_workout_button" onclick="window.location.href='../workouts/EntterTheSixPack.html'">
                     Enter The Six Pack
                 </button>
             </div>
-            <div>
-                <!-- <p>My Workouts</p> -->
+            <div class="workout_row">
                 <button class="home_page_button workout_button default_workout_button" onclick="window.location.href='../workouts/default_workout.html'">
                     Default Workout
+                </button>
+            </div>
+            <!-- Saved workouts, filled in by display_workouts.js -->
+            <div id="custom_workouts"></div>
+            <div class="workout_row">
+                <button class="home_page_button workout_button default_workout_button" onclick="window.location.href='../additions/add_workout_table.html'">
+                    Add Workout
                 </button>
             </div>
         </div>
