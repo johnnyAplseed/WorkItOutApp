@@ -276,8 +276,10 @@ function saveWorkout () {
 	var notes = document.querySelector("#notes_paragraph").innerText;
 	workoutData.notes = notes;
 
-	var workoutTime = document.querySelector("#display_time").textContent;
-	workoutData.time = workoutTime;
+	// #display_time is only created once FINISH has been pressed, so an autosave
+	// that runs mid-workout has to fall back to the live elapsed time.
+	var displayedTime = document.querySelector("#display_time");
+	workoutData.time = displayedTime ? displayedTime.textContent : formattedElapsedTime();
 
 	workoutData.exercises= [];
 	// Loop through each row in the table (excluding the header row)
@@ -329,6 +331,31 @@ function saveWorkout () {
 
 
 }
+
+//--------------------------------------------------------------------------------------------------------------
+//Autosave: save progress as soon as the user finishes editing a cell, so closing
+//the page without pressing FINISH doesn't lose the work.
+//--------------------------------------------------------------------------------------------------------------
+// Elapsed time in the same "M:SS" shape the FINISH button shows, built without
+// touching the timer globals that displayWorkoutMinutesAndSave() depends on.
+function formattedElapsedTime() {
+	var elapsedMilliseconds = new Date() - startTime;
+	var minutes = Math.round((elapsedMilliseconds / 1000) / 60);
+	var seconds = Math.round(elapsedMilliseconds / 1000 % 60);
+	return minutes + ":" + (seconds < 10 ? 0 : "") + seconds;
+}
+
+function autoSaveWorkout(event) {
+	// Ignore focus leaving anything that isn't an editable cell, e.g. a button.
+	if (!event.target.isContentEditable) return;
+	saveWorkout();
+	console.log("Autosaved workout progress.");
+}
+
+// focusout bubbles (blur does not), so one listener on the table covers every
+// editable cell, including the ones added later as the table is built.
+document.getElementById("any_workout_table").addEventListener("focusout", autoSaveWorkout);
+document.getElementById("notes_paragraph").addEventListener("focusout", autoSaveWorkout);
 
 
 
