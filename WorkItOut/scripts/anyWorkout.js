@@ -202,13 +202,14 @@ function startTimer() {
 function endTimer() {
 	endTime = new Date();
 	millisecondsElapsed = endTime - startTime;
-	timeElapsed = Math.round((millisecondsElapsed / 1000) / 60)
+	// floor, not round: rounding turned 95 seconds into "2:35" instead of "1:35".
+	timeElapsed = Math.floor((millisecondsElapsed / 1000) / 60)
 	// console.log("Minutes Elapsed: " + timeElapsed + ":" + Math.round(millisecondsElapsed / 1000 % 60));
 }
 
 //checks if the number is less than ten so we can add a zero before the numebr
 function isLessThanTen() {
-	if (Math.round(this.millisecondsElapsed / 1000 % 60) < 10)
+	if (Math.floor(this.millisecondsElapsed / 1000 % 60) < 10)
 		return 0;
 	else return "";
 }
@@ -340,8 +341,8 @@ function saveWorkout () {
 // touching the timer globals that displayWorkoutMinutesAndSave() depends on.
 function formattedElapsedTime() {
 	var elapsedMilliseconds = new Date() - startTime;
-	var minutes = Math.round((elapsedMilliseconds / 1000) / 60);
-	var seconds = Math.round(elapsedMilliseconds / 1000 % 60);
+	var minutes = Math.floor((elapsedMilliseconds / 1000) / 60);
+	var seconds = Math.floor(elapsedMilliseconds / 1000 % 60);
 	return minutes + ":" + (seconds < 10 ? 0 : "") + seconds;
 }
 
@@ -369,11 +370,11 @@ function displayWorkoutMinutesAndSave() {
 
 
 	let displayTime = document.createElement("h2");
-	displayTime.innerHTML = this.timeElapsed + ":" + isLessThanTen() + Math.round(this.millisecondsElapsed / 1000 % 60);
+	displayTime.innerHTML = this.timeElapsed + ":" + isLessThanTen() + Math.floor(this.millisecondsElapsed / 1000 % 60);
 	displayTime.id = "display_time";
 
 	if (document.getElementById("displayTimeLabel") != 'undefined' && document.getElementById("displayTimeLabel") != null) {
-		document.getElementById("display_time").innerHTML = this.timeElapsed + ":" + isLessThanTen() + Math.round(this.millisecondsElapsed / 1000 % 60);
+		document.getElementById("display_time").innerHTML = this.timeElapsed + ":" + isLessThanTen() + Math.floor(this.millisecondsElapsed / 1000 % 60);
 	} else {
 		document.getElementById("end_timer").appendChild(displayTimeLabel);
 		document.getElementById("end_timer").appendChild(displayTime);
