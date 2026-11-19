@@ -490,6 +490,27 @@ textarea {
     width: 90%;
 }
 
+/* Create Workout page: name box and type dropdown at 1.5x the size they
+   rendered at by default (212x23 and 161x19, both with 13.3px text). The
+   border-box sizing makes the widths include the padding, so they match what
+   was measured. max-width keeps them inside the page on a narrow phone. */
+#new_workout_name,
+#workout_type {
+    box-sizing: border-box;
+    max-width: 100%;
+    font-size: 20px;
+}
+
+#new_workout_name {
+    width: 318px;
+    height: 34.5px;
+}
+
+#workout_type {
+    width: 241px;
+    height: 28.5px;
+}
+
 #add_progress_image {
     padding: 1rem 1.5rem;
 }
