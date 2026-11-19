@@ -330,8 +330,208 @@ function saveWorkout () {
   
 	localStorage.setItem(workoutData.name + "_history", JSON.stringify(workoutData));
 
-
+	// Only add this visit to the history once it is a real session: something was
+	// typed, or FINISH was pressed. Tapping into a cell and back out also fires
+	// an autosave, and the cells still hold last time's values at that point, so
+	// without this check just looking at a workout would log a copy of the last one.
+	if (sessionHasInput || sessionFinished) {
+		recordSession(workoutData);
+	}
 }
+
+//--------------------------------------------------------------------------------------------------------------
+//Workout history: every session is kept under "<NAME>_sessions", newest first.
+//--------------------------------------------------------------------------------------------------------------
+// "<NAME>_history" stays exactly as it was, holding just the latest session,
+// because loadPreviousWorkoutData() reads it to fill in the grayed-out values.
+// The full list is kept apart from it so that changing one can't break the other.
+var SESSIONS_KEY = workoutName.toUpperCase() + "_sessions";
+
+// One page load is one session. Autosave runs many times during a workout, and
+// each save replaces this session's entry instead of adding another one.
+var sessionStartedAt = new Date();
+var sessionId = sessionStartedAt.getTime().toString();
+var sessionHasInput = false;
+var sessionFinished = false;
+
+function readSessions() {
+	try {
+		var sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY));
+		return Array.isArray(sessions) ? sessions : null;
+	} catch (err) {
+		console.error("Could not read workout history", err);
+		return null;
+	}
+}
+
+function writeSessions(sessions) {
+	try {
+		localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+	} catch (err) {
+		console.error("Could not save workout history", err);
+	}
+}
+
+// Before this list existed, only the latest session was kept, and it had no date.
+// Carry that one over as the oldest entry so it isn't lost. This has to run on
+// page load, before the first autosave replaces "<NAME>_history".
+function migrateLegacyHistory() {
+	if (readSessions() !== null) return;
+
+	var sessions = [];
+	try {
+		var legacy = JSON.parse(localStorage.getItem(workoutName.toUpperCase() + "_history"));
+		if (legacy && Array.isArray(legacy.exercises)) {
+			legacy.id = "legacy";
+			legacy.date = null;
+			sessions.push(legacy);
+		}
+	} catch (err) {
+		console.error("Could not read previous workout for history", err);
+	}
+	writeSessions(sessions);
+}
+
+function recordSession(workoutData) {
+	var sessions = readSessions() || [];
+	var entry = JSON.parse(JSON.stringify(workoutData));
+	entry.id = sessionId;
+	entry.date = sessionStartedAt.toISOString();
+
+	var existing = -1;
+	for (var i = 0; i < sessions.length; i++) {
+		if (sessions[i].id === sessionId) { existing = i; break; }
+	}
+	if (existing >= 0) {
+		sessions[existing] = entry;
+	} else {
+		sessions.unshift(entry);
+	}
+	writeSessions(sessions);
+}
+
+function formatSessionDate(isoDate) {
+	if (!isoDate) return "Earlier session (date not recorded)";
+	var date = new Date(isoDate);
+	return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }) +
+		" - " + date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function historyCell(text, isHeader) {
+	var cell = document.createElement("td");
+	cell.className = isHeader ? "new_workout_data new_workout_headers" : "new_workout_data";
+	cell.textContent = text == null ? "" : text;
+	return cell;
+}
+
+// Builds a read-only copy of the workout table for one past session. It
+// deliberately avoids the live table's "new_workout_row" class and its ids,
+// because saveWorkout() and the cell listeners select on those, and would
+// otherwise treat the history rows as part of the current workout.
+function buildSessionTable(session) {
+	var table = document.createElement("table");
+	table.className = "new_workout_table";
+
+	var setColumns = 0;
+	session.exercises.forEach(function (exercise) {
+		var count = (exercise.repsCompleted || []).length;
+		if (count > setColumns) setColumns = count;
+	});
+
+	var headerRow = document.createElement("tr");
+	headerRow.className = "history_headers";
+	["Name", "Wt.", "S", "R"].forEach(function (label) {
+		headerRow.appendChild(historyCell(label, true));
+	});
+	for (var s = 0; s < setColumns; s++) {
+		headerRow.appendChild(historyCell("Set " + (s + 1), true));
+	}
+	table.appendChild(headerRow);
+
+	session.exercises.forEach(function (exercise, index) {
+		var row = document.createElement("tr");
+		row.className = "history_row";
+		if (workout.supersets && workout.supersets[index] && workout.supersets[index].superset) {
+			row.classList.add("is_superset");
+		}
+		row.appendChild(historyCell(exercise.exercise));
+		row.appendChild(historyCell(exercise.weight));
+		row.appendChild(historyCell(exercise.sets));
+		row.appendChild(historyCell(exercise.reps));
+		var reps = exercise.repsCompleted || [];
+		for (var r = 0; r < setColumns; r++) {
+			row.appendChild(historyCell(reps[r]));
+		}
+		table.appendChild(row);
+	});
+
+	return table;
+}
+
+function renderWorkoutHistory() {
+	var container = document.getElementById("workout_history");
+	container.innerHTML = "";
+
+	var sessions = readSessions() || [];
+	if (sessions.length === 0) {
+		var empty = document.createElement("p");
+		empty.className = "history_empty";
+		empty.textContent = "No saved sessions yet. Your workouts will show up here once you've logged one.";
+		container.appendChild(empty);
+		return;
+	}
+
+	sessions.forEach(function (session) {
+		var block = document.createElement("div");
+		block.className = "history_session";
+
+		var heading = document.createElement("h3");
+		heading.className = "history_date";
+		heading.textContent = formatSessionDate(session.date);
+		block.appendChild(heading);
+
+		block.appendChild(buildSessionTable(session));
+
+		if (session.time) {
+			var time = document.createElement("p");
+			time.className = "history_time";
+			time.textContent = "Time: " + session.time;
+			block.appendChild(time);
+		}
+		if (session.notes) {
+			var notes = document.createElement("p");
+			notes.className = "history_notes";
+			notes.textContent = session.notes;
+			block.appendChild(notes);
+		}
+
+		container.appendChild(block);
+	});
+}
+
+// History replaces the workout on screen rather than opening a separate page.
+// Leaving the page would restart the timer and begin a new session when the
+// user comes back, so the current workout stays on the page while they look.
+function toggleWorkoutHistory() {
+	var history = document.getElementById("workout_history");
+	var showingHistory = history.hidden;
+
+	if (showingHistory) renderWorkoutHistory();
+	history.hidden = !showingHistory;
+	["start_button", "any_workout_div", "any_workout_notes", "end_timer"].forEach(function (id) {
+		document.getElementById(id).hidden = showingHistory;
+	});
+	document.getElementById("history_toggle_button").textContent = showingHistory ? "BACK TO WORKOUT" : "VIEW HISTORY";
+	window.scrollTo(0, 0);
+}
+
+function markSessionInput() {
+	sessionHasInput = true;
+}
+
+migrateLegacyHistory();
+document.getElementById("any_workout_table").addEventListener("input", markSessionInput);
+document.getElementById("notes_paragraph").addEventListener("input", markSessionInput);
 
 //--------------------------------------------------------------------------------------------------------------
 //Autosave: save progress as soon as the user finishes editing a cell, so closing
@@ -387,6 +587,7 @@ function displayWorkoutMinutesAndSave() {
 	}
 
 	// saveWorkoutOld();
+	sessionFinished = true;
 	saveWorkout();
 
 }

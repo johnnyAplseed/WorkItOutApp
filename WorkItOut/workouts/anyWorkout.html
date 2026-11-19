@@ -25,7 +25,10 @@
 				<h1 id="any_workout_name">Workout Name</h1>
 				<h3 id="any_workout_type">Workout Type</h3>
 			</div>
-			<button class="end_timer_button" style="margin-bottom: 1.5rem;" onclick="startTimer()">START</button>
+			<button class="end_timer_button" id="start_button" style="margin-bottom: 1.5rem;" onclick="startTimer()">START</button>
+			<button class="end_timer_button" id="history_toggle_button" style="margin-bottom: 1.5rem;" onclick="toggleWorkoutHistory()">VIEW HISTORY</button>
+			<!-- Past sessions, newest first. Filled in by renderWorkoutHistory() each time it is opened. -->
+			<div id="workout_history" hidden></div>
 			<div id="any_workout_div">
 				<table id="any_workout_table" class="new_workout_table">
 					<tr id="any_workout_headers_1">
@@ -36,7 +39,7 @@
 					</tr>
 				</table>
 			</div>
-			<div>
+			<div id="any_workout_notes">
 				<h3>NOTES</h3>
 				<p id='notes_paragraph' contenteditable='true'></p>
 			</div>

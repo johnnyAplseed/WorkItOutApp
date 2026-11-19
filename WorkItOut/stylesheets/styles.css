@@ -783,6 +783,47 @@ input[type="text"]:focus {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Workout history (anyWorkout.html). These mirror the live table's
+   #any_workout_headers_1 / .new_workout_row styles, but use their own names,
+   because anyWorkout.js selects on those to find the rows it saves. */
+#wrapper [hidden] {
+    display: none !important;
+}
+
+.history_headers {
+    height: 3rem;
+    border: 2px black solid;
+    border-collapse: collapse;
+    background-color: #ffffe6;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.history_row {
+    height: 3rem;
+    border: 2px black solid;
+    border-collapse: collapse;
+    background-color: #ffffcc;
+}
+
+.history_session {
+    margin-bottom: 2rem;
+}
+
+.history_date {
+    margin-bottom: 0.5rem;
+}
+
+.history_time,
+.history_notes,
+.history_empty {
+    background-color: #ffffe6;
+    color: #333;
+    padding: 0.5rem;
+    margin: 0.5rem 0 0;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
 .is_superset{
     border-bottom-color: #dbdbdb; 
 }

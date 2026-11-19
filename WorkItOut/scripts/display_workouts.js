@@ -255,6 +255,8 @@ function deleteWorkout(name) {
 						window.localStorage.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
 						//Remove the history file for the workout
 						window.localStorage.removeItem(temp);
+						//...and its full session history (see anyWorkout.js)
+						window.localStorage.removeItem(deletedName.toUpperCase() + "_sessions");
 						//Drop it from the order too, so a future workout reusing
 						//the name does not inherit this one's position.
 						saveWorkoutOrder(readWorkoutOrder().filter(function (ordered) {
