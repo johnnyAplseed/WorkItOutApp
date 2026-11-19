@@ -101,14 +101,11 @@ function saveWorkoutTable() {
 
     if (confirm("Are you sure you want to submit this workout?")){
         window.localStorage.setItem("Workouts", JSON.stringify(workoutArray));
-        // window.location.href = "../content/workouts.html";
-        //aler user workout has been saved. 
-        var workoutSubmittedMessage = document.createElement("div");
-        var savedString = document.createElement("h3");
-        savedString.innerText  = "Workout Saved!"
-        workoutSubmittedMessage.appendChild(savedString);
-        workoutSubmittedMessage.id="workout_saved_alert";
-        document.getElementById("new_workout_notes").parentNode.appendChild(workoutSubmittedMessage);
+        // Back to the workouts list, where the new workout now shows up.
+        // replace() rather than href, so the finished form drops out of the
+        // history: pressing back from the list won't reopen it, where
+        // submitting again would only hit the "name already exists" alert.
+        window.location.replace("../content/workouts.html");
     } else {
         var workoutSubmittedMessage = document.createElement("div");
         var savedString = document.createElement("h3");
