@@ -136,6 +136,11 @@ for (var k = 0; k < exerciseCount; k++) {
 	tableDataName.className = "new_workout_data";
 	workoutNamesList.push(this.workout.exercises.shift().toString());
 	tableDataName.innerHTML = workoutNamesList[k].toString();
+	// k is a var, so it is read from the cell rather than closed over.
+	tableDataName.dataset.exerciseIndex = k;
+	addLongPress(tableDataName, function () {
+		renameExercise(tableDataName);
+	});
 	tableRow.appendChild(tableDataName);
 	//weight
 	let tableDataWt = document.createElement("td");
@@ -523,6 +528,77 @@ function toggleWorkoutHistory() {
 	});
 	document.getElementById("history_toggle_button").textContent = showingHistory ? "BACK TO WORKOUT" : "VIEW HISTORY";
 	window.scrollTo(0, 0);
+}
+
+//--------------------------------------------------------------------------------------------------------------
+//Rename an exercise (long press on its name)
+//--------------------------------------------------------------------------------------------------------------
+// The workout definition stores each exercise as four entries in a flat array
+// (name, weight, sets, reps), so exercise k's name is at index 4k. Names are
+// stored as HTML, the way the create page saves them, so typed text is escaped
+// to keep a "<" or "&" showing as typed.
+function escapeHtml(text) {
+	var div = document.createElement("div");
+	div.textContent = text;
+	return div.innerHTML;
+}
+
+function renameExercise(cell) {
+	var index = Number(cell.dataset.exerciseIndex);
+	var currentName = cell.textContent;
+
+	var input = prompt("Rename exercise:", currentName);
+	if (input === null) return; // cancelled
+
+	var newName = input.trim();
+	if (newName === "" || newName === currentName) return;
+	var newNameHtml = escapeHtml(newName);
+
+	// The in-memory copy of the workout was used up building the table
+	// (exercises were shift()ed off it), so work from the saved one.
+	var allWorkouts = JSON.parse(localStorage.getItem("Workouts")) || [];
+	var definition = null;
+	for (var i = 0; i < allWorkouts.length; i++) {
+		if (allWorkouts[i].name.toString() == workoutName) definition = allWorkouts[i];
+	}
+	if (!definition || definition.exercises[index * 4] === undefined) {
+		alert("Sorry, this exercise could not be renamed.");
+		return;
+	}
+
+	definition.exercises[index * 4] = newNameHtml;
+	if (definition.supersets && definition.supersets[index]) {
+		definition.supersets[index].exercise = newNameHtml;
+	}
+
+	try {
+		localStorage.setItem("Workouts", JSON.stringify(allWorkouts));
+
+		// Keep the last session's record in step, so the name and the grayed
+		// out values from last time stay together.
+		var historyKey = workoutName.toUpperCase() + "_history";
+		var history = JSON.parse(localStorage.getItem(historyKey));
+		if (history && history.exercises && history.exercises[index]) {
+			history.exercises[index].exercise = newName;
+			localStorage.setItem(historyKey, JSON.stringify(history));
+		}
+	} catch (err) {
+		console.error("Could not rename exercise", err);
+		alert("Sorry, this exercise could not be renamed.");
+		return;
+	}
+
+	cell.innerHTML = newNameHtml;
+	workoutNamesList[index] = newNameHtml;
+
+	// Past sessions keep the name they were recorded with; only this visit's
+	// session takes the new name. It is saved now rather than waiting for the
+	// next autosave or FINISH, in case neither happens before the page is
+	// closed. A visit that isn't being recorded yet is left alone, the same
+	// rule saveWorkout() uses.
+	if (sessionHasInput || sessionFinished) {
+		saveWorkout();
+	}
 }
 
 function markSessionInput() {

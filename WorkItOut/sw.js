@@ -63,6 +63,7 @@ const PRECACHE_URLS = [
     'scripts/calorie_management.js',
     'scripts/choose_bg_image.js',
     'scripts/display_workouts.js',
+    'scripts/long_press.js',
     'scripts/navigation.js',
     'scripts/profile_management.js',
     'scripts/profile_management_with_versioning.js',

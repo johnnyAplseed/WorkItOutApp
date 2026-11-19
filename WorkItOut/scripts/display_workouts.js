@@ -81,6 +81,10 @@ function buildWorkoutRow(workout) {
 	openButton.type = "button";
 	openButton.className = "home_page_button workout_button";
 	openButton.textContent = workout.name;
+	// A long press renames instead of opening (see long_press.js).
+	addLongPress(openButton, function () {
+		renameWorkout(workout.name);
+	});
 	openButton.addEventListener("click", function () {
 		loadWorkout(workout.name.toString().replace(/ /g, "_"));
 	});
@@ -225,6 +229,94 @@ function endDrag(event) {
 	}
 
 	drag = null;
+}
+
+//--------------------------------------------------------------------------------------------------------------
+// Rename (long press on a workout's name)
+//--------------------------------------------------------------------------------------------------------------
+// The name is the workout's identity throughout the app, so renaming moves
+// everything keyed on it: the entry in "Workouts", its place in the drag
+// order, and the "<NAME>_history" / "<NAME>_sessions" keys (uppercased).
+
+var WORKOUT_NAME_MAX_LENGTH = 40; // same as the maxlength on the create page
+
+function renameWorkout(oldName) {
+	var input = prompt("Rename workout:", oldName);
+	if (input === null) return; // cancelled
+
+	var newName = input.trim();
+	if (newName === "" || newName === oldName) return;
+
+	if (newName.length > WORKOUT_NAME_MAX_LENGTH) {
+		alert("Workout names can be at most " + WORKOUT_NAME_MAX_LENGTH + " characters.");
+		return;
+	}
+	// Spaces become underscores in the link that opens a workout, and are
+	// turned back on the way in, so a real "_" in a name would be lost and the
+	// workout could no longer be found.
+	if (newName.indexOf("_") !== -1) {
+		alert("Workout names can't contain underscores ( _ ).");
+		return;
+	}
+
+	var workouts = readWorkouts();
+	var target = null;
+	for (var i = 0; i < workouts.length; i++) {
+		if (workouts[i].name === oldName) {
+			target = workouts[i];
+		} else if (workouts[i].name.toUpperCase() === newName.toUpperCase()) {
+			// Compared ignoring case because the history keys are uppercased:
+			// "Legs" and "LEGS" would end up sharing one history.
+			alert("A workout named \"" + workouts[i].name + "\" already exists. Please choose a different name.");
+			return;
+		}
+	}
+	if (!target) {
+		alert("Could not find \"" + oldName + "\". It may have been changed in another tab.");
+		renderWorkouts();
+		return;
+	}
+
+	var oldKey = oldName.toUpperCase();
+	var newKey = newName.toUpperCase();
+
+	try {
+		// Copy the history across before saving the new name and remove the
+		// old copy last, so a failure part way never leaves a workout without
+		// its history. A rename that only changes case keeps the same keys.
+		if (oldKey !== newKey) {
+			var oldHistory = localStorage.getItem(oldKey + "_history");
+			if (oldHistory !== null) {
+				try {
+					var history = JSON.parse(oldHistory);
+					history.name = newKey; // matches what saveWorkout() writes
+					oldHistory = JSON.stringify(history);
+				} catch (err) { /* keep it as is */ }
+				localStorage.setItem(newKey + "_history", oldHistory);
+			}
+			var oldSessions = localStorage.getItem(oldKey + "_sessions");
+			if (oldSessions !== null) {
+				localStorage.setItem(newKey + "_sessions", oldSessions);
+			}
+		}
+
+		target.name = newName;
+		localStorage.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
+
+		saveWorkoutOrder(readWorkoutOrder().map(function (ordered) {
+			return ordered === oldName ? newName : ordered;
+		}));
+
+		if (oldKey !== newKey) {
+			localStorage.removeItem(oldKey + "_history");
+			localStorage.removeItem(oldKey + "_sessions");
+		}
+	} catch (err) {
+		console.error("Could not rename workout", err);
+		alert("Sorry, the workout could not be renamed.");
+	}
+
+	renderWorkouts();
 }
 
 //--------------------------------------------------------------------------------------------------------------
